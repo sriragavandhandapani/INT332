@@ -1,263 +1,117 @@
-# Week 1: Basics of DevOps Infrastructure (Up to cgroups)
+# Module 1: Foundations of DevOps & Containerization
 
-## Topics Covered
+## Core Concepts
 
-* Introduction to DevOps
-* Introduction to Containers
-* Virtualization and Hypervisor
-* Container Runtime
-* Process Isolation & Namespaces
-* Control Groups (cgroups)
-
----
-
-## Introduction to DevOps
-
-DevOps is a combination of Development (Dev) and Operations (Ops). It is a set of practices that enables collaboration between software development and IT operations teams.
-
-Traditionally, development and operations worked separately:
-
-* Developers focused on writing code
-* Operations focused on deployment and maintenance
-
-This separation caused delays, errors, and inefficiencies.
-
-DevOps solves this by integrating both teams and promoting:
-
-* Continuous Integration (CI) → Frequent code updates
-* Continuous Delivery (CD) → Faster deployment
-
-### Why DevOps is Needed
-
-* Reduces communication gaps
-* Speeds up development and deployment
-* Improves reliability of applications
-* Enables automation of repetitive tasks
+- What is DevOps?
+- Understanding Containers vs. VMs
+- Hypervisors and Virtualization
+- The Container Runtime Environment
+- Linux Namespaces (Process Isolation)
+- Control Groups (Resource Management)
 
 ---
 
-## Introduction to Containers
+## 1. Understanding DevOps
 
-### Origin of Containers
+DevOps merges Software Development (Dev) and IT Operations (Ops). It forms a philosophy aiming to unify teams that historically worked in silos.
 
-Initially, applications were deployed on physical servers where:
+Previously:
+- Developers strictly coded the applications.
+- Operations managed server uptime, deployment, and infrastructure.
 
-* One application used the entire system
-* Resource utilization was poor
+This disconnect led to slower release cycles and potential misalignments. DevOps bridges this gap by focusing on:
+- **Continuous Integration (CI):** Automating code merging and testing.
+- **Continuous Delivery (CD):** Streamlining the deployment process.
 
-Then virtualization was introduced:
-
-* Multiple Virtual Machines (VMs) run on one system
-
-However, virtualization had limitations:
-
-* Each VM requires its own OS
-* High memory and CPU usage
-* Slow startup time
-
-To overcome this, containerization was introduced.
+### Key Benefits
+- Minimizes communication silos.
+- Accelerates the release of features.
+- Enhances system stability.
+- Drives aggressive automation of manual tasks.
 
 ---
 
-### Emergence of Modern Containerization
+## 2. Exploring Containers
 
-Containers are lightweight environments that:
+### The Evolution
+Historically, apps ran natively on bare-metal servers. Since you could only run one primary stack effectively per machine, resource efficiency was low.
 
-* Share the host operating system
-* Run applications in isolation
-* Use fewer resources compared to VMs
-* Start almost instantly
+Virtualization changed this by allowing multiple Virtual Machines (VMs) on a single physical host. 
+However, VMs present drawbacks:
+- Each VM boots a hefty, independent Operating System.
+- Startup times can be painfully slow.
+- Substantial CPU and RAM overhead.
 
----
+Containerization emerged as the modern solution.
 
-### Real-World Example (Used in Class)
+### Modern Containers
+Containers provide lightweight environments:
+- They share the host's OS kernel rather than booting a new one.
+- Applications run in strictly isolated units.
+- They utilize minimal resources and spin up in milliseconds.
 
-* Independent House → Monolithic system
-* Apartment → Virtual Machines
-* PG System → Containers
-
-Explanation:
-
-* In a PG, resources like kitchen, electricity, and water are shared
-* Each person has their own room (isolation)
-* Similarly, containers share OS but isolate applications
+*Analogy:* If a bare-metal server is a standalone house and a VM is an apartment building with separate utilities, a Container is like a shared living space (PG) where everyone has a private room but shares the core utilities (the kernel).
 
 ---
 
-## Virtualization and Hypervisor
+## 3. Virtualization & The Hypervisor
 
-Virtualization allows multiple virtual machines to run on a single physical system.
-
-This is achieved using a **hypervisor**.
-
-### Apartment Model Explanation
-
-* Building → Physical Server
-* Flats → Virtual Machines
-* Manager → Hypervisor
-
----
+Virtualization leverages a software layer to slice hardware into separate VMs.
 
 ### What is a Hypervisor?
+A hypervisor (or Virtual Machine Monitor) manages these VMs. 
+- It provisions CPU, RAM, and disk space for each VM.
+- It enforces strict hardware-level isolation.
+- It translates requests between the VM's OS and the actual physical hardware.
 
-A hypervisor is software that creates and manages virtual machines.
-
-### Role of Hypervisor
-
-* Allocates CPU, memory, and storage to each VM
-* Ensures isolation between VMs
-* Manages communication between hardware and VMs
-
-### Limitation of Hypervisor-Based Systems
-
-* Each VM requires a full OS
-* Consumes more resources
-* Slower compared to containers
+**The downside:** Running a full OS on top of a hypervisor is resource-intensive compared to the container approach.
 
 ---
 
-## Container Runtime
+## 4. Container Runtimes
 
-A container runtime is responsible for running containers.
+The container runtime is the engine responsible for actually running the containers.
 
-It acts as a bridge between the container and the operating system.
+### Key Responsibilities
+- Setting up the container execution environment.
+- Governing the lifecycle (start, stop, pause) of a container.
+- Enforcing resource constraints and isolation rules.
 
-### Functions of Container Runtime
+### Runtime Categories
+**High-Level Runtimes:**
+- Handle image distribution, networking, and high-level management.
+- Examples: Docker Engine, containerd, CRI-O.
 
-* Creates container environment
-* Starts and stops containers
-* Manages container lifecycle
-* Applies isolation and resource limits
-
----
-
-### Types of Container Runtime
-
-#### High-Level Runtime
-
-Examples:
-
-* Docker Engine
-* containerd
-* CRI-O
-
-Responsibilities:
-
-* Image management
-* Networking
-* Storage
-
-#### Low-Level Runtime
-
-Example:
-
-* runc
-
-Responsibilities:
-
-* Direct interaction with Linux kernel
-* Uses namespaces and cgroups
+**Low-Level Runtimes:**
+- Interact directly with the kernel to launch processes using namespaces and cgroups.
+- Example: runc.
 
 ---
 
-## Process Isolation & Namespaces
+## 5. Linux Namespaces
 
-Containers run independently due to process isolation.
+Containers appear as independent systems thanks to Linux Namespaces. They hide the rest of the system from the containerized process.
 
-This is achieved using **Linux namespaces**.
+### Primary Namespaces:
+- **PID Namespace:** Isolates process IDs. The container believes it has a process with PID 1.
+- **Network Namespace:** Provides an isolated network stack, including IP addresses, ports, and routing.
+- **Mount Namespace:** Isolates the filesystem. The container gets its own root directory independent of the host.
 
----
-
-### What are Namespaces?
-
-Namespaces are kernel features that isolate system resources for each container.
-
-Each container gets its own view of:
-
-* Processes
-* Network
-* Filesystem
+*Note:* Namespaces dictate **what** a container can see, but they don't restrict **how much** of the system it can consume.
 
 ---
 
-### Types of Namespaces
+## 6. Control Groups (cgroups)
 
-#### PID Namespace (Process Isolation)
+While Namespaces handle visibility, Control Groups (cgroups) handle consumption. They throttle and measure resource usage.
 
-* Each container has its own process IDs
-* Inside a container, processes start from PID 1
-* Cannot see processes of other containers
+### Why do we need them?
+If left unchecked, a single container could exhaust all the host's memory or CPU, causing a system-wide crash (Noisy Neighbor problem).
 
----
+### What do they monitor?
+- CPU usage
+- RAM allocation
+- Disk read/write speeds (Block I/O)
 
-#### Network Namespace
-
-* Each container gets its own IP address
-* Containers can use the same port independently
-* Network is isolated
-
----
-
-#### Mount Namespace
-
-* Each container has its own filesystem
-* Changes inside container do not affect host
-
----
-
-### Key Idea
-
-Namespaces provide **isolation**, but they do NOT control resource usage.
-
----
-
-## Control Groups (cgroups)
-
-Control Groups (cgroups) are used to limit and manage resource usage of containers.
-
----
-
-### Why cgroups are Needed
-
-Without cgroups:
-
-* One container can consume all CPU or memory
-* Other containers may become slow or crash
-* System stability is affected
-
----
-
-### What cgroups Control
-
-* CPU usage → Limits processing power
-* Memory usage → Prevents memory overflow
-* Disk I/O → Controls read/write speed
-
----
-
-### Example Scenario
-
-If a container runs a heavy application:
-
-* cgroups can limit it to use only 50% CPU
-* Prevents it from affecting other containers
-
----
-
-### Key Concept
-
-* Namespaces → Provide isolation
-* cgroups → Provide resource control
-
-Both are essential for containerization.
-
----
-
-## Summary
-
-* DevOps improves collaboration and speeds up delivery
-* Containers are lightweight alternatives to virtual machines
-* Hypervisor enables virtualization but is resource-heavy
-* Container runtime executes containers
-* Namespaces isolate container environments
-* cgroups control resource usage and prevent system overload
+**Summary Paradigm:** 
+*Namespaces = Isolation | cgroups = Allocation.* Both are mandatory for a true containerized ecosystem.

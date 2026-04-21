@@ -1,211 +1,106 @@
-# Week 3: Docker Registry, Objects, Layering & Filesystem
+# Module 3: Storage, Objects, and Essential Commands
 
-## Topics Covered
-
-* Docker Registry & Docker Hub
-* Docker Object Types
-* Docker Layering
-* Docker Filesystem
-* Docker Basic Commands
-
----
-
-## Docker Registry & Docker Hub
-
-A Docker registry is used to **store and distribute container images**.
-
-Docker Hub is a **public registry** that provides:
-
-* Official images
-* Public/private repositories
-* Easy sharing
+## Topics to Explore
+- Docker Hub and Registry Ecosystems
+- Core Docker Objects
+- Deep Dive into Layering Principles
+- Container Filesystem Architecture
+- Essential CLI Syntax and execution patterns
 
 ---
 
-## Docker Object Types
+## 1. Registry Mechanics
 
-### Container
-
-Running instance of an image.
-
-### Image
-
-Read-only blueprint for containers.
-
-### Network
-
-Enables communication between containers.
-
-### Volume
-
-Provides persistent storage.
+A registry acts as the central hub for hosting container images. **Docker Hub** serves as the default public cloud repository, granting access to officially verified images (like Node, Ubuntu, Nginx), enabling seamless global sharing, and providing private repo options for developers.
 
 ---
 
-## Docker Layering
+## 2. Fundamental Docker Objects
 
-* Each instruction creates a layer
-* Layers are immutable, cached, reusable
-* Improves build speed and storage efficiency
-
----
-
-## Docker Filesystem
-
-* Image → Read-only layers
-* Container → Writable layer added
-* Writable layer is temporary
+When working with Docker, you will interact with four primary object types:
+- **Images:** The immutable, built templates.
+- **Containers:** The instantiated, active runtime of an image.
+- **Networks:** Virtual networks facilitating traffic between standalone containers.
+- **Volumes:** Dedicated, persistent storage units that survive container deletions.
 
 ---
 
-# 🔥 Docker Commands (From PPT)
+## 3. Storage Layering
 
-## 1. Image Commands
+Images utilize a Union Filesystem.
+- Every directive in a build file adds a unique layer.
+- Layers are heavily cached.
+- Modifying your image optimally means putting frequently changed layers at the bottom.
 
-**Pull Ubuntu image**
+### The Container's Filesystem Layer
+When an image spins into a container, Docker slaps a **thin, writable layer** on top of the read-only image layers. Any file modifications made inside a running container are written here. When the container dies, this layer vanishes.
 
-```bash id="c1"
+---
+
+## 4. Master Command List
+
+### Image Operations
+```bash
+# Download a base Ubuntu image
 docker pull ubuntu
-```
 
-**List images**
-
-```bash id="c2"
+# View available local images
 docker images
-```
 
-**Remove image**
-
-```bash id="c3"
+# Delete an image from local cache
 docker rmi ubuntu
 ```
 
----
-
-## 2. Container Execution
-
-**Run container**
-
-```bash id="c4"
+### Execution & Lifecycles
+```bash
+# Start an image in the foreground
 docker run ubuntu
-```
 
-**Run with terminal**
-
-```bash id="c5"
+# Boot an image and drop into an interactive bash shell
 docker run -it ubuntu /bin/bash
-```
 
----
-
-## 3. Container Lifecycle
-
-**Stop container**
-
-```bash id="c6"
+# Terminate a running container
 docker stop <container_id>
-```
 
-**Remove container**
-
-```bash id="c7"
+# Erase a stopped container from the disk
 docker rm <container_id>
 ```
 
----
-
-## 4. Cleanup Commands
-
-**Clean unused resources**
-
-```bash id="c8"
+### Essential Cleanup ⚠️
+```bash
+# Safely clear out dangling images and stopped containers
 docker system prune -a
-```
 
-**Full cleanup (Nuclear Clean ⚠️)**
-
-```bash id="c9"
+# Nuclear option: Obliterate everything unused, including persistent user volumes
 docker system prune -a --volumes
 ```
 
----
-
-## 5. Nginx Container Commands (Important)
-
-**Pull nginx image**
-
-```bash id="c10"
+### Practical Example: Nginx
+```bash
+# Fetch the web server image
 docker pull nginx
-```
 
-**Run nginx container in background**
+# Launch in background (-d), bind host port 8080 to container port 80 (-p), and name it
+docker run -d -p 8080:80 --name local_nginx nginx
 
-```bash id="c11"
-docker run -d -p 8080:80 --name mynginx nginx
-```
-
-👉 `-d` → Detached mode
-👉 `-p` → Port mapping (host:container)
-
----
-
-**List running containers**
-
-```bash id="c12"
+# View active instances
 docker ps
-```
 
----
+# Halt the web server
+docker stop local_nginx
 
-**Stop container**
+# Resume the server
+docker start local_nginx
 
-```bash id="c13"
-docker stop mynginx
-```
+# Aggressively terminate and immediately destroy the container
+docker rm -f local_nginx
 
----
-
-**Start container**
-
-```bash id="c14"
-docker start mynginx
-```
-
----
-
-**Force remove container**
-
-```bash id="c15"
-docker rm -f mynginx
-```
-
----
-
-**Remove nginx image**
-
-```bash id="c16"
+# Clear the cached image
 docker rmi nginx
 ```
 
----
-
-## 🔑 Important Notes
-
-* `docker run` → creates + starts container
-* `docker start` → starts existing container
-* `-it` → interactive terminal
-* `-d` → background mode
-* `-p` → port mapping
-* `prune` → removes unused resources
-
----
-
-## Summary
-
-* Docker Hub stores images
-* Containers run applications
-* Images act as blueprints
-* Networks enable communication
-* Volumes store persistent data
-* Layering improves efficiency
-* Commands manage full container lifecycle
+### Quick Syntax Reminders
+- `-it`: Keeps STDIN open and allocates a pseudo-TTY (interactive).
+- `-d`: Detaches execution, returning the terminal prompt.
+- `-p`: Forwards traffic (`host_port:container_port`).
+- `docker run` encompasses an implicit `docker pull`, `docker create`, and `docker start`.

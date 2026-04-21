@@ -1,63 +1,76 @@
+# Module 4: Advanced CLI, Variables, and Diagnostics
 
+## 1. Environment Verification
+Always ensure your installation is healthy and understand the layered history of the images you depend on.
+```bash
+docker --version         # Check CLI version
+docker info              # Deep dive into engine details (runtimes, storage drivers)
+docker history <image>   # Audit the layers of a specific image
+```
 
-These commands help verify and inspect your Docker environment.
+## 2. Managing the Local Cache
+Images are heavy. Proper management of what resides on your disk is critical.
+```bash
+docker images            # Audit local repository
+docker pull httpd        # Manually cache an image from upstream
+docker ps                # View healthy, running containers
+docker ps -a             # Include ghost containers (stopped/crashed)
+```
 
-docker --version       # Shows installed Docker version
-docker info            # Displays system-wide Docker information
-docker history <image> # Shows image layer history
+## 3. Dissecting execution (`docker run`)
+The powerhouse command of Docker.
+**Essential arguments:**
+- `-d`: Background execution (Detached).
+- `-p`: Network traffic routing.
+- `--name`: Applies a semantic string alias instead of a random hash.
+- `-it`: Bind to the container's interactive shell.
 
-🐳 2. Image & Container Management
-Manage Docker images and containers before running applications.
-docker images          # List all local images
-docker pull <image>    # Download image (e.g., docker pull httpd)
+**Real-world usage:**
+```bash
+docker run -d -p 80:80 --name proxy_server nginx
+```
 
-docker ps              # List running containers
-docker ps -a           # List all containers (including stopped)
+## 4. Managing Configuration via Environment Variables
+Applications behave differently across environments (Testing vs Prod). We control this behavior effortlessly through Environment Variables.
 
+**Injecting single values:**
+```bash
+docker run -e DB_USER=admin ubuntu
+```
 
+**Injecting multiple values sequentially:**
+```bash
+docker run -e DB_USER=admin -e DB_PASS=secret ubuntu
+```
 
-▶️ 3. The docker run Command & Options
-Used to create and start a container.
-🔹 Common Flags
--d        # Run container in detached (background) mode
--p        # Port mapping (host:container)
---name    # Assign custom container name
--it       # Interactive terminal mode
-🔹 Example
-docker run -d -p 80:80 --name my_container nginx
+**Mirroring a host variable:**
+```bash
+docker run -e PATH ubuntu
+```
 
-
-
-🌍 4. Environment Variables
-Used to configure applications dynamically.
-🔹 Methods to Set Variables
-1. Single Variable
-docker run -e MY_VAR=value ubuntu
-2. Multiple Variables
-docker run -e VAR1=value1 -e VAR2=value2 ubuntu
-3. Pass from Host
-docker run -e HOST_VAR ubuntu
-4. Using Environment File (Best Practice)
-
-Create a .env file:
-APP_ENV=production
-DB_HOST=localhost
-
-Run container with:
+**Bulk injection (The correct way for massive configurations):**
+Write a `.env` file containing configuration keys:
+```env
+ENVIRONMENT=staging
+DEBUG_MODE=true
+```
+Then mount the file during execution:
+```bash
 docker run --env-file .env ubuntu
+```
 
+## 5. Runtime Control Vectors
+Sometimes, you need to halt and resume workloads.
+```bash
+docker start <id>    # Wake up
+docker stop <id>     # Graceful termination (SIGTERM)
+docker restart <id>  # Cycle the container
+docker pause <id>    # Freeze execution state via cgroups
+```
 
-
-🔄 5. Container Lifecycle & Interaction
-🔹 Control Commands
-docker start <container_id>    # Start stopped container
-docker stop <container_id>     # Stop running container
-docker restart <container_id>  # Restart container
-docker pause <container_id>    # Pause container processes
-
-
-
-🔧 Troubleshooting & Cleanup
-docker exec -it <container_id> bash  # Enter running container
-docker rm <container_id>             # Remove container
-docker rmi <image_id>                # Remove image
+## 6. General Diagnostics
+```bash
+docker exec -it <id> bash  # Pierce the namespace and get a shell
+docker rm <id>             # Eradicate the container
+docker rmi <id>            # Eradicate the image blueprint
+```

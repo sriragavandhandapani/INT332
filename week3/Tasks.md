@@ -1,77 +1,77 @@
-# Docker Hands-on Tasks
+# Lab Activities: Module 3
 
-This document contains a series of practical Docker tasks covering container management, networking, and deployment.
-
----
-
-## Task 1: Troubleshooting a Running Container
-**Objective:** Access a running container's shell and inspect its internal state.
-
-* **Open bash inside container:**
-    ```bash
-    docker exec -it <container_id> bash
-    ```
-* **View logs:**
-    ```bash
-    docker logs <container_id>
-    ```
-* **Show running processes:**
-    ```bash
-    docker top <container_id>
-    ```
+This lab focuses on hands-on application of basic structural container operations.
 
 ---
 
-## Task 2: Custom Networking
-**Objective:** Create and manage a custom Docker network named `mynetwork`.
+## Exercise 1: Drilling into a Running Container
+**Goal:** Prove that you can open a shell into a backgrounded application and monitor its diagnostics.
 
-* **Create the network:**
+- **Drop into the bash shell:**
     ```bash
-    docker network create mynetwork
+    docker exec -it <active_container_id> bash
     ```
-* **List all networks:**
+- **Dump standard output/errors:**
+    ```bash
+    docker logs <active_container_id>
+    ```
+- **List real-time internal processes:**
+    ```bash
+    docker top <active_container_id>
+    ```
+
+---
+
+## Exercise 2: Virtual Networking
+**Goal:** Provision an isolated network bridge for arbitrary containers to communicate across.
+
+- **Provision the network:**
+    ```bash
+    docker network create isolated-net
+    ```
+- **Verify creation:**
     ```bash
     docker network ls
     ```
-* **Inspect network configuration:**
+- **Check network details (IP subnets, attached containers):**
     ```bash
-    docker network inspect mynetwork
+    docker network inspect isolated-net
     ```
 
 ---
 
-## Task 3: Deploying Apache Web Server (httpd)
-**Objective:** Deploy a static website using the Apache HTTP Server in a detached container.
+## Exercise 3: Booting Apache HTTPD
+**Goal:** Stand up a functional static web server relying on port forwarding.
 
-1.  **Pull the Apache image:**
+1.  **Retrieve HTTPD:**
     ```bash
     docker pull httpd
     ```
-2.  **Verify the image download:**
+2.  **Verify local cache:**
     ```bash
     docker images
     ```
-3.  **Run the container (Detached, Named, Port Mapped):**
+3.  **Deploy detached across Port 8081:**
     ```bash
-    docker run -d --name apache-web -p 8081:80 httpd
+    docker run -d --name my-apache-test -p 8081:80 httpd
     ```
-4.  **Check running containers:**
+4.  **Confirm process health:**
     ```bash
     docker ps
     ```
-5.  **Access the server:**
-    Open your browser and navigate to `http://localhost:8081`.
+5.  **Test functionality:**
+    Navigate your host system browser to `http://localhost:8081`.
 
 ---
 
-## Task 4: Interactive Linux Practice
-**Objective:** Use Docker to spin up an ephemeral Ubuntu environment for practicing Linux commands.
+## Exercise 4: Disposable Terminals
+**Goal:** Spin up a completely ephemeral OS just to test some quick shell operations.
 
-* **Run Ubuntu in interactive mode:**
+- **Launch Ubuntu interactively:**
     ```bash
     docker run -it ubuntu bash
     ```
-* **Exit the container:**
+- **Destroy the session:**
     ```bash
     exit
     ```

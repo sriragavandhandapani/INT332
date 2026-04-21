@@ -1,83 +1,96 @@
-# Week 5: Advanced Docker Operations (Volumes, Interaction & Real Deployments)
+# Module 5: Orchestrating Data & Real Deployments
 
-## Topics Covered
+## Main Subjects
+- Host-to-Container interaction protocols (`exec`, `cp`)
+- The philosophy of persistent Volumes
+- Injecting state via variables
+- Comprehensive debugging patterns
 
-* Container Interaction (exec, attach, cp)
-* File transfer between host and container
-* Volume Management
-* Environment Variables
-* Real-world Deployments (Nginx, Apache, MySQL)
-* Debugging using logs
+---
 
-## Container Interaction Commands
+## 1. Bridging the Host and Container
 
-### Execute commands inside container
-docker exec -it <container_id> /bin/bash
+Occasionally, it is necessary to manually tweak files or run secondary processes in an active container.
 
-### Attach to running container
-docker attach <container_id>
+### Running Secondary Processes
+```bash
+# Spawning a secondary bash session inside a living container
+docker exec -it <id> /bin/bash
+```
 
-### Copy files between host and container
-**Container → Host**
-docker cp <container_id>:/path/file.txt C:\Users\HP\Desktop\
+### Connecting to the Primary Process
+```bash
+# Attach your terminal to the container's PID 1 standard output
+docker attach <id>
+```
 
-**Host → Container**
-docker cp C:\Users\HP\Desktop\file.txt <container_id>:/path/
+### Physical File Migration
+Moving data in and out manually using the `cp` command syntax.
+**Outward bound (Extracting data):**
+```bash
+docker cp <container_id>:/var/log/app.log ~/Desktop/app.log
+```
+**Inward bound (Injecting data):**
+```bash
+docker cp ~/Desktop/config.json <container_id>:/etc/app/config.json
+```
 
-## File Operations inside Container
+---
 
-mkdir /data
-echo "Hello Docker" > /data/test.txt
-cat /data/test.txt
+## 2. Emulating File Actions (Internal)
+If you `exec` into the container, you can manipulate its filesystem using basic POSIX tools:
+```bash
+mkdir /persistence
+echo "Starting system..." > /persistence/init.txt
+cat /persistence/init.txt
+```
 
-## Volume Commands
+---
 
-### Create Volume
-docker volume create mydata
+## 3. The Power of Volumes
 
+Containers are ephemeral. If they vanish, their modified filesystem vanishes. **Volumes** are Docker-managed folders on the host that are mounted securely into the container to ensure data survives destruction.
 
-### List Volumes
-docker volume ls
-### Inspect Volume
-docker volume inspect mydata
+### Volume Operations
+```bash
+docker volume create app_data        # Provision a new volume
+docker volume ls                     # Audit all provisions
+docker volume inspect app_data       # Get physical mount path details
+docker volume rm app_data            # Delete the specified provisioning
+docker volume prune                  # Wipe out all unattached volumes logically
+```
 
-### Use Volume in Container
-docker run -dit --name mycontainer -v mydata:/app/data ubuntu
+### Attaching Volumes
+You mount a volume using the `-v` flag (`volume_name:internal_target_path`).
+```bash
+docker run -dit --name app-worker -v app_data:/var/lib/data ubuntu
+```
 
+---
 
-### Remove Volume
-docker volume rm mydata
-docker volume prune
+## 4. Complex Deployments
 
-## Environment Variables
-docker run -e ENV_MODE=production nginx
+### Stateful Web Deployment
+A full deployment linking ports, environment variables, and persistent storage:
+```bash
+docker run -dit --name core-web -p 8080:80 -e OPERATION_MODE=prod -v web_assets:/usr/local/apache2/htdocs httpd
+```
 
-## Logs & Debugging
-docker logs <container_name>
-docker logs -f <container_name>
+### Advanced Database Deployment
+A MySQL instance requires extensive configuration passed via the `-e` flag to configure users securely upon bootstrap:
+```bash
+docker run -d --name sql_engine -p 3307:3306 \
+  -e MYSQL_ROOT_PASSWORD=supersecure \
+  -e MYSQL_DATABASE=student_db \
+  -e MYSQL_USER=app_user \
+  -e MYSQL_PASSWORD=app_pass mysql:8
+```
 
-## Apache Deployment
-docker run -dit --name college_portal -p 8080:80 -e ENV=production -v portaldata:/usr/local/apache2/htdocs httpd
+---
 
-## MySQL Debugging
-docker run -d --name mysql_debug -p 3307:3306 \
--e MYSQL_ROOT_PASSWORD=root123 \
--e MYSQL_DATABASE=college \
--e MYSQL_USER=admin \
--e MYSQL_PASSWORD=admin123 mysql:8
-
-## Key Concepts
-
-* `exec` → run commands inside container
-* `cp` → transfer files
-* volumes → persistent storage
-* `logs` → debugging tool
-* environment variables → configure container
-
-## Summary
-
-* Containers can be controlled and debugged
-* Volumes store persistent data
-* Files can be shared between host and container
-* Real deployments use environment variables
-* Logs help identify issues
+## 5. Telemetry and Logs
+If a deployment fails, parsing the console logs emitted by the main process is critical.
+```bash
+docker logs sql_engine         # Dump the log history
+docker logs -f sql_engine      # Follow the log stream continuously
+```

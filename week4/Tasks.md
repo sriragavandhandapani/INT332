@@ -1,19 +1,22 @@
-📝 Practical Tasks from Syllabus
+# Lab Activities: Module 4
 
-Task #1: Basic Interaction
-Run an Ubuntu container interactively: docker run -it ubuntu bash.
-Execute basic Linux commands like ls or pwd inside the shell.
-Exit to stop the container.
+---
 
+## Walkthrough 1: Interactive Shells
+1. Fire up a fresh instance of the Ubuntu environment and bind to its terminal: `docker run -it ubuntu bash`.
+2. Notice the prompt changes. You are now inside the Linux container. Run `ls /` or `uname -a`.
+3. Type `exit` to kill the terminal, which concurrently stops the container entirely.
 
+---
 
-Task #2: Web Server Deployment
-Pull the Apache image: docker pull httpd.
-Run it with port mapping: docker run -d -p 8081:80 --name my-web httpd.
-Verify: Access http://localhost:8081 in your browser.
+## Walkthrough 2: Exposing Services
+1. Fetch the official Apache image: `docker pull httpd`.
+2. Construct and start a containerized web service. Route host port 8081 through to container port 80: `docker run -d -p 8081:80 --name web-sandbox httpd`.
+3. Launch curl or a browser against `localhost:8081` to observe the default Apache landing page.
 
+---
 
-
-Task #3: Environment Variable Practice
-Run: docker run -e APP_COLOR=blue --name color-test ubuntu env.
-Confirm: The output will list all variables, including APP_COLOR=blue.
+## Walkthrough 3: Testing Variable Injection
+1. Run a container whose sole purpose is to dump its environment out to the console and cleanly exit. Pass a custom variable to it: 
+   `docker run -e THEME_PREFERENCE=dark --name config-test ubuntu env`.
+2. Examine the stdout dump; verify that `THEME_PREFERENCE=dark` successfully bridged into the container.

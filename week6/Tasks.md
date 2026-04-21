@@ -1,75 +1,49 @@
-# Week 6: Tasks
-
-## 🔹 Task 1: Environment Variable
-
-### Steps
-
-docker run -it -e COLLEGE=CSE ubuntu bash
-echo $COLLEGE
-exit
+# Lab Activities: Module 6
 
 ---
 
-## 🔹 Task 2: Port Mapping
-
-### Run without port mapping
-
-docker run nginx
-
-### Run with port mapping
-
-docker run -p 8080:80 nginx
+## Challenge 1: Single Variable Injection
+- Execute an interactive bash shell injecting a specific identifier:
+  `docker run -it -e WORKSPACE=lab_env ubuntu bash`
+- Inside the container, dump the variable to prove it exists:
+  `echo $WORKSPACE`
+- Validate and close.
 
 ---
 
-## 🔹 Task 3: Nginx with Environment Variable
-
-docker run -it -p 8080:80 -e NGINX_PORT=8080 nginx
-
----
-
-## 🔹 Task 4: Apache Deployment
-
-docker pull httpd
-docker run -d --name my-apache -p 8080:80 httpd
-docker exec -it my-apache bash -c "echo '<h1>Hello from Docker Apache!</h1>' > /usr/local/apache2/htdocs/index.html"
-curl http://localhost:8080
-docker stop my-apache
-docker rm my-apache
+## Challenge 2: Network Accessibility
+- Test a blind run: `docker run nginx` (Fails to be accessible locally).
+- Test a routed run: `docker run -p 8080:80 nginx` (Succeeds via `curl localhost:8080`).
 
 ---
 
-## 🔹 Task 5: Combined Run Options
-
-docker run -it --name my_app -e APP_ENV=production -v C:\app\data:/data ubuntu /bin/bash
-echo $APP_ENV
-echo "Hello this is my first program" > /data/test.txt
-cat /data/test.txt
-echo "Second line added" >> /data/test.txt
-cat /data/test.txt
+## Challenge 3: Parameter Overloading
+- Launch an instance with both network bindings and environment params:
+  `docker run -it -p 8888:80 -e PROXY_PORT=8888 nginx`
 
 ---
 
-## 🔹 Task 6: Container Lifecycle
-
-docker run -d --name my_container nginx
-docker stop my_container
-docker start my_container
-
----
-
-## 🔹 Task 7: Logs
-
-docker logs my_container
-docker logs -f my_container
+## Challenge 4: Complete Static Deployment
+- Obtain the base server: `docker pull httpd`
+- Deploy to the background on local port 8080: `docker run -d --name apache-cluster -p 8080:80 httpd`
+- Manipulate internal file logic dynamically: `docker exec -it apache-cluster bash -c "echo '<h1>Systems Operational.</h1>' > /usr/local/apache2/htdocs/index.html"`
+- Validate visually via browser or curl.
+- Clean the stage by stopping and tearing down the container.
 
 ---
 
-## ✅ Outcome
+## Challenge 5: Massive Execution Sequence
+- Fire off a container leveraging almost all parameters:
+  `docker run -it --name full_test -e DEPLOY=staging -v ~/data:/opt/data ubuntu bash`
+- Prove the parameters held: `echo $DEPLOY`
+- Test the filesystem mount: 
+  `echo "Initiating protocol" > /opt/data/test.log`
+  `echo "Sequence 2" >> /opt/data/test.log`
+- Examine the combined output.
 
-* Environment variables are tested
-* Port mapping is verified
-* Apache server runs successfully
-* Multiple docker run options are used
-* Container lifecycle commands are executed
-* Logs are used for debugging
+---
+
+## Challenge 6: Stream Tailing
+- Kick off a silent daemon: `docker run -d --name silent_server nginx`
+- Manually poll its startup logs: `docker logs silent_server`
+- Re-run and lock your terminal to follow the stream: `docker logs -f silent_server`

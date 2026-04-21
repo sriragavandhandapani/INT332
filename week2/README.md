@@ -1,275 +1,129 @@
-# Week 2: Container Images, Docker & Architecture
+# Module 2: Docker Ecosystem & Architectures
 
-## Topics Covered
-
-* Container Images & Layers
-* Image Registries & Distribution
-* Introduction to Docker
-* Docker Architecture
-* Docker Daemon
-* Docker CLI
-* Tasks / MCQs (from PPT)
+## Key Focus Areas
+- Deep Dive into Images vs. Containers
+- Storage and Distribution Registries
+- The Docker Ecosystem
+- Architectural Components
+- Docker CLI Operations
+- Knowledge Checks
 
 ---
 
-## Container Images
+## 1. Anatomy of a Container Image
 
-A container image is a **read-only template** used to create containers.
+Think of a container image as an immutable snapshot. It provides the exact blueprint for spinning up containers.
 
-It contains:
+An image bundles everything required to execute your application:
+- Source code
+- Required software dependencies
+- OS libraries
+- Default configuration settings
 
-* Application code
-* Dependencies
-* Libraries
-* Runtime environment
-
-👉 When we run an image, it becomes a **container (running instance)**.
-
----
-
-## Image Layers
-
-Container images are built using **layers**.
-
-### What are Layers?
-
-* Each instruction in a Dockerfile creates a new layer
-* Layers are stacked on top of each other
-* Each layer is **immutable (cannot be changed)**
+*Crucial rule:* Once ran, this read-only template transitions into an active, writable entity known as a **container**.
 
 ---
 
-### Example
+## 2. Understanding Image Layers
 
-If a Dockerfile contains:
+Docker images are composed of discrete slices called **layers**. 
 
-* Install OS
-* Install Node.js
-* Copy application code
+### How Layers Work
+- Every command inside a `Dockerfile` (e.g., `RUN`, `COPY`) generates an independent layer.
+- These layers stack sequentially. 
+- They are entirely read-only (immutable).
 
-👉 Each step becomes a separate layer
-
----
-
-### Advantages of Layers
-
-* Faster builds (cached layers are reused)
-* Reduced storage (shared layers)
-* Efficient updates (only changed layers are rebuilt)
+### The Benefit of Layering
+If you modify code at the very end of your build script, Docker only rebuilds that top layer while relying on the cache for all the base layers (like the OS and language runtimes). This results in:
+- Rapid iteration and builds.
+- Minimized disk footprint by sharing base layers across different images.
 
 ---
 
-## Image Registries & Distribution
+## 3. Registries & Distribution
 
-An image registry is a storage system used to store and share container images.
+A registry is a repository service where container images are published and fetched.
 
----
+### Registry Varieties
+- **Public:** Available to the global community (e.g., standard Docker Hub).
+- **Private:** Gated, secure repositories for corporate/proprietary software.
 
-### Types of Registries
-
-#### Public Registry
-
-* Accessible to everyone
-* Example: Docker Hub
-
-#### Private Registry
-
-* Restricted access
-* Used by organizations
+### The Lifecycle Flow
+1. Code is written and an image is built.
+2. The image is `pushed` to the registry.
+3. The registry archives it.
+4. A host machine `pulls` the image.
+5. A container is spawned from that pulled image.
 
 ---
 
-### Image Distribution Process
+## 4. Introducing Docker
 
-1. Developer builds an image
-2. Image is pushed to registry
-3. Stored in registry
-4. Pulled by another system
-5. Container is created
-
-👉 This enables portability across environments.
+Docker abstracts the gnarly details of interacting directly with Linux namespaces and cgroups. It provides a human-friendly toolset to build, ship, and manage standalone containers globally.
 
 ---
 
-## Introduction to Docker
+## 5. Docker's Internal Architecture
 
-Docker is a platform that simplifies:
+Docker heavily leverages a **Client-Server** methodology.
 
-* Building images
-* Running containers
-* Managing containerized applications
+### The Client (Docker CLI)
+This is the interface you type into. When you hit enter on `docker build` or `docker run`, the client communicates via a REST API to the server.
 
-It provides an easy interface to use containerization without dealing directly with low-level OS features.
+### The Server (Docker Daemon / dockerd)
+The heavy lifter running in the background. It listens to the API and actively builds images, spins up containers, and mounts volumes.
 
----
+### Registries
+The external or internal hubs where the daemon looks when you request an image it doesn't possess locally.
 
-## Docker Architecture
-
-Docker follows a **client-server architecture**.
-
----
-
-### Components
-
-#### Docker Client
-
-* Interface used by users
-* Executes commands like:
-
-  * docker run
-  * docker build
+### Images & Containers
+- **Image:** The frozen blueprint.
+- **Container:** The thawed, running execution of the image.
 
 ---
 
-#### Docker Daemon
+## 6. Navigating the CLI
 
-* Runs in the background
-* Responsible for:
+The Docker Command Line Interface is your primary tool.
 
-  * Managing containers
-  * Handling images
-  * Managing networks and volumes
-
----
-
-#### Docker Registry (Docker Hub)
-
-* Stores Docker images
-* Allows push and pull operations
-
----
-
-#### Docker Images
-
-* Blueprint for containers
-* Read-only
-
----
-
-#### Containers
-
-* Running instance of an image
-* Includes writable layer
-
----
-
-## Docker Daemon (In-depth)
-
-The Docker daemon is the **core engine** of Docker.
-
-### Responsibilities
-
-* Builds images
-* Runs containers
-* Manages lifecycle
-* Handles communication with registry
-
-👉 It listens to Docker API requests and executes them.
-
----
-
-## Docker CLI
-
-Docker CLI (Command Line Interface) is used to interact with Docker.
-
-### Common Commands (Basic)
-
+### Essential Commands
 ```bash
-docker version
-docker info
-docker pull nginx
-docker run nginx
-docker images
-docker ps
+docker version      # Displays client/server versions
+docker info         # Summarizes the engine's environment
+docker pull nginx   # Fetches 'nginx' from the configured registry
+docker run nginx    # Instantiates the fetched image
+docker images       # Outputs locally cached images
+docker ps           # Lists actively running containers
 ```
 
 ---
 
-### Command Explanation
+## 7. Concept Validations
 
-* docker pull → Downloads image from registry
-* docker run → Creates and starts container
-* docker images → Lists images
-* docker ps → Shows running containers
+### Scenario A
+If a developer updates their application logic and rebuilds the Docker image, what actually gets rebuilt?
+> **Solution:** Only the layer reflecting the code change and any subsequent layers below it. The cached foundational layers remain untouched, saving immense time.
 
----
+### Scenario B
+Which of the following statements about an image is false?
+a) They are strictly read-only.
+b) They come pre-packed with dependencies.
+c) You can directly modify images on the fly.
+d) They serve as the template for containers.
+> **Solution:** **(c)** is incorrect. Images are immutable. Modifications require building a new image or editing a running container (which only changes its ephemeral thin layer).
 
-## Tasks / MCQs (From PPT)
+### Scenario C
+What is the primary function of Docker Hub?
+a) Executing code.
+b) Archiving and sharing container images.
+c) Managing physical CPU thresholds.
+d) Granting namespace isolation.
+> **Solution:** **(b)** It is a registry service for distribution.
 
-### Task 1
-
-A developer modifies a Dockerfile and rebuilds the image.
-
-**Question:**
-Which layers will be rebuilt?
-
-**Answer:**
-👉 Only the modified layer and the layers after it will be rebuilt due to caching.
-
----
-
-### Task 2
-
-Which of the following is NOT true about container images?
-
-a) Images are read-only
-b) Images contain application dependencies
-c) Images can be modified directly
-d) Images are used to create containers
-
-**Answer:**
-👉 c) Images can be modified directly
-
----
-
-### Task 3
-
-What is the role of Docker Registry?
-
-a) Run containers
-b) Store and distribute images
-c) Manage CPU usage
-d) Provide process isolation
-
-**Answer:**
-👉 b) Store and distribute images
-
----
-
-### Task 4
-
-Which component is responsible for running containers?
-
-a) Docker CLI
-b) Docker Daemon
+### Scenario D
+Which piece of the architecture natively spins up containers?
+a) The Docker Client
+b) The Docker Daemon (dockerd)
 c) Docker Hub
-d) Image
-
-**Answer:**
-👉 b) Docker Daemon
-
----
-
-### Task 5
-
-Which command is used to download an image?
-
-a) docker run
-b) docker pull
-c) docker start
-d) docker build
-
-**Answer:**
-👉 b) docker pull
-
----
-
-## Summary
-
-* Container images are read-only templates
-* Layers improve efficiency and performance
-* Registries store and distribute images
-* Docker simplifies container usage
-* Docker architecture includes client, daemon, and registry
-* CLI is used to interact with Docker
-* Tasks help understand real-world scenarios
+d) The Image
+> **Solution:** **(b)** The Daemon handles all background execution.
